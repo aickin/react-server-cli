@@ -4,6 +4,7 @@ A simple command line app that will compile a routes file for the client and sta
 
 ```
 npm install
+gulp
 ./bin/react-server <routesfile>
 ```
 
