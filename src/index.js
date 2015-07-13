@@ -41,21 +41,28 @@ async function startServer(routesRelativePath, port, optimize) {
 
 }
 
-var argv = require("yargs")
-	.usage('Usage: $0 [options] routeFile.js')
-	.option("p", {
-		alias: "port",
-		default: 3000,
-		describe: "Port to start listening for react-server",
-		type: "number",
-	})
-	.option("o", {
-		alias: "optimize",
-		default: false,
-		describe: "Optimize client JS when option is present. Takes a bit longer to compile",
-		type: "boolean",
-	})
-	.demand(1)
-	.argv;
+// if routeFile is falsey, this method requires a route file on the command line. if routeFile is a string,
+// it uses that file and just parses options from the command line.
+module.exports = (routeFile) => {
+	var argv = require("yargs")
+		.usage('Usage: $0 [options] routeFile.js')
+		.option("p", {
+			alias: "port",
+			default: 3000,
+			describe: "Port to start listening for react-server",
+			type: "number",
+		})
+		.option("o", {
+			alias: "optimize",
+			default: false,
+			describe: "Optimize client JS when option is present. Takes a bit longer to compile",
+			type: "boolean",
+		})
+		.demand(routeFile ? 0 : 1)
+		.argv;
 
-startServer(argv._[0], argv.port, argv.optimize);
+	routeFile = routeFile || argv._[0];
+
+	startServer(routeFile, argv.port, argv.optimize);
+
+}

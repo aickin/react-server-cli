@@ -2,7 +2,7 @@
   "name": "react-server-cli",
   "version": "0.1.0",
   "description": "A command line to run react-server",
-  "main": "index.js",
+  "main": "target/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -12,7 +12,6 @@
     "babel-runtime": "^5.6.17",
     "compression": "^1.5.1",
     "express": "^4.13.1",
-    "react-server": "file:../react-server-code-drop",
     "yargs": "^3.15.0"
   },
   "devDependencies": {
