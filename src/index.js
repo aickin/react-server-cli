@@ -27,7 +27,7 @@ function startServer(routesRelativePath, port, optimize) {
 	const {serverRoutes, webpackConfig} = triton.compileClient(routes, {
 		routesDir: path.dirname(routesPath),
 		optimize,
-		outputUrl: optimize ? "/static/" : "http://localhost:3001/",
+		outputUrl: "http://localhost:3001/",
 	});
 
 	let compiler = webpack(webpackConfig, function(err, stats) {
@@ -35,28 +35,34 @@ function startServer(routesRelativePath, port, optimize) {
 	    	logger.error("Error during webpack build.");
 	    	logger.error(err);
 	    } else {
-			const server = express();
+		    logger.debug("Successfully packaged react-server app for client.");
+			let jsServer;
 	    	if (optimize) {
 	    		// TODO: make this parameterized based on what is returned from triton.compileClient
-			    logger.debug("Successfully packaged react-server app for client.");
-				server.use('/static', compression(), express.static('__clientTemp/build'));
+	    		let server = express();
+				server.use('/', compression(), express.static('__clientTemp/build'));
+				logger.info("Starting JavaScript server...");
+				jsServer = http.createServer(server);
 			} else {
-				const webpackServer = new WebpackDevServer(compiler, {
+				jsServer = new WebpackDevServer(compiler, {
 					contentBase: webpackConfig.output.path,
+					noInfo: true,
 				});
-				logger.info("Starting webpack dev server...");
-				webpackServer.listen(3001, function() {
-					logger.info(`Started webpack dev server on port ${3001}`);
-				});
+				logger.info("Starting JavaScript server in dev mode...");
 			}
-
-			triton.middleware(server, require(serverRoutes));
-
-			logger.info("Starting server...");
-			http.createServer(server).listen(port, function () {
-				logger.info('Started listening on port ' + port);	
+			// TODO: make JS port a parameter
+			jsServer.listen(3001, function() {
+				logger.info(`Started JavaScript server on port ${3001}`);
 			});
 	    }
+	});
+
+	const server = express();
+	triton.middleware(server, require(serverRoutes));
+
+	logger.info("Starting server...");
+	http.createServer(server).listen(port, function () {
+		logger.info(`Started listening on port ${port}`);	
 	});
 }
 
