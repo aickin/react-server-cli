@@ -47,6 +47,8 @@ function startServer(routesRelativePath, port, optimize) {
 				jsServer = new WebpackDevServer(compiler, {
 					contentBase: webpackConfig.output.path,
 					noInfo: true,
+					hot: true,
+					headers: { 'Access-Control-Allow-Origin': '*' },
 				});
 				logger.info("Starting JavaScript server in dev mode...");
 			}
