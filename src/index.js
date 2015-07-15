@@ -7,10 +7,12 @@ const triton = require("react-server"),
 	// TODO: do we need a post-processor here?
 	logger = logging.getLogger({name: "react-server-cli/index.js", color: {server: 9}}),
 	path = require("path"),
-	compression = require("compression")
+	compression = require("compression"),
+	webpack = require("webpack"),
+	WebpackDevServer = require("webpack-dev-server")
 ;
 
-async function startServer(routesRelativePath, port, optimize) {
+function startServer(routesRelativePath, port, optimize) {
 
 	// Logging setup. This typically wouldn't be handled here,
 	// but the application integration stuff isn't part of this project
@@ -18,27 +20,44 @@ async function startServer(routesRelativePath, port, optimize) {
 	logging.setLevel('time',  'fast');
 	logging.setLevel('gauge', 'ok');
 
-	const server = express();
 
 	const routesPath = path.join(process.cwd(), routesRelativePath);
 	const routes = require(routesPath);
 
-	// TODO: make this parameterized based on what is returned from triton.compileClient
-	server.use('/static', compression(), express.static('__clientTemp/build'));
-
-	const routesFile = await triton.compileClient(routes, {
+	const {serverRoutes, webpackConfig} = triton.compileClient(routes, {
 		routesDir: path.dirname(routesPath),
 		optimize,
-	})
-
-	triton.middleware(server, require(routesFile));
-
-	logger.info("Starting server...");
-	http.createServer(server).listen(port, function () {
-		logger.info('Started listening on port ' + port);	
+		outputUrl: optimize ? "/static/" : "http://localhost:3001/",
 	});
 
+	let compiler = webpack(webpackConfig, function(err, stats) {
+	    if(err) {
+	    	logger.error("Error during webpack build.");
+	    	logger.error(err);
+	    } else {
+			const server = express();
+	    	if (optimize) {
+	    		// TODO: make this parameterized based on what is returned from triton.compileClient
+			    logger.debug("Successfully packaged react-server app for client.");
+				server.use('/static', compression(), express.static('__clientTemp/build'));
+			} else {
+				const webpackServer = new WebpackDevServer(compiler, {
+					contentBase: webpackConfig.output.path,
+				});
+				logger.info("Starting webpack dev server...");
+				webpackServer.listen(3001, function() {
+					logger.info(`Started webpack dev server on port ${3001}`);
+				});
+			}
 
+			triton.middleware(server, require(serverRoutes));
+
+			logger.info("Starting server...");
+			http.createServer(server).listen(port, function () {
+				logger.info('Started listening on port ' + port);	
+			});
+	    }
+	});
 }
 
 // if routeFile is falsey, this method requires a route file on the command line. if routeFile is a string,
