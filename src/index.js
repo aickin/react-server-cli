@@ -30,46 +30,68 @@ function startServer(routesRelativePath, port, optimize) {
 		outputUrl: "http://localhost:3001/",
 	});
 
-	let compiler = webpack(webpackConfig, function(err, stats) {
-	    if(err) {
-	    	logger.error("Error during webpack build.");
-	    	logger.error(err);
-	    } else {
-		    logger.debug("Successfully packaged react-server app for client.");
-			let jsServer;
-	    	if (optimize) {
+	const startJsServer = optimize ? startStaticJsServer : startHotLoadJsServer;
+
+	Promise.all([
+		// TODO: make JS port a parameter
+		startJsServer(webpackConfig, 3001),
+		startHtmlServer(serverRoutes, port)
+	])
+		.then(() => logger.info("Started HTML & JavaScript servers; ready for requests."))
+}
+
+const startHtmlServer = (serverRoutes, port) => {
+	logger.info("Starting HTML server...");
+
+	const server = express();
+	server.use(compression());
+	triton.middleware(server, require(serverRoutes));
+
+	http.createServer(server).listen(port, function () {
+		logger.info(`Started HTML server on port ${port}`);	
+	});
+};
+
+const startStaticJsServer = (webpackConfig, port) => {
+	return new Promise((resolve, reject) => {
+		webpack(webpackConfig, function(err, stats) {
+		    if(err) {
+		    	logger.error("Error during webpack build.");
+		    	logger.error(err);
+		    	reject(err);
+		    	// TODO: inspect stats to see if there are errors -sra.
+		    } else {
+			    logger.debug("Successfully compiled static JavaScript.");
 	    		// TODO: make this parameterized based on what is returned from triton.compileClient
 	    		let server = express();
 				server.use('/', compression(), express.static('__clientTemp/build'));
-				logger.info("Starting JavaScript server...");
-				jsServer = http.createServer(server);
-			} else {
-				jsServer = new WebpackDevServer(compiler, {
-					contentBase: webpackConfig.output.path,
-					noInfo: true,
-					hot: true,
-					headers: { 'Access-Control-Allow-Origin': '*' },
+				logger.info("Starting static JavaScript server...");
+
+				http.createServer(server).listen(port, function() {
+					logger.info(`Started static JavaScript server on port ${port}`);
+					resolve();
 				});
-				logger.info("Starting JavaScript server in dev mode...");
-			}
-			// TODO: make JS port a parameter
-			jsServer.listen(3001, function() {
-				logger.info(`Started JavaScript server on port ${3001}`);
-			});
-	    }
+		    }
+		});
 	});
+};
 
-	const server = express();
-	if (optimize) {
-		server.use(compression());
-	}
-	triton.middleware(server, require(serverRoutes));
-
-	logger.info("Starting server...");
-	http.createServer(server).listen(port, function () {
-		logger.info(`Started listening on port ${port}`);	
+const startHotLoadJsServer = (webpackConfig, port) => {
+	logger.info("Starting hot reload JavaScript server...");
+	const compiler = webpack(webpackConfig);
+	const compiledPromise = new Promise((resolve, reject) => compiler.plugin("done", () => resolve()));
+	const jsServer = new WebpackDevServer(compiler, {
+		contentBase: webpackConfig.output.path,
+		noInfo: true,
+		hot: true,
+		headers: { 'Access-Control-Allow-Origin': '*' },
 	});
-}
+	const serverStartedPromise = new Promise((resolve, reject) => {
+		jsServer.listen(port, () => resolve() );
+	});
+	return Promise.all([compiledPromise, serverStartedPromise])
+		.then(() => logger.info(`Started hot reload JavaScript server on port ${port}`));
+};
 
 // if routeFile is falsey, this method requires a route file on the command line. if routeFile is a string,
 // it uses that file and just parses options from the command line.
