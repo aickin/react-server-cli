@@ -60,6 +60,9 @@ function startServer(routesRelativePath, port, optimize) {
 	});
 
 	const server = express();
+	if (optimize) {
+		server.use(compression());
+	}
 	triton.middleware(server, require(serverRoutes));
 
 	logger.info("Starting server...");
