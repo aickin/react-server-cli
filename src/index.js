@@ -9,7 +9,8 @@ const triton = require("react-server"),
 	path = require("path"),
 	compression = require("compression"),
 	webpack = require("webpack"),
-	WebpackDevServer = require("webpack-dev-server")
+	WebpackDevServer = require("webpack-dev-server"),
+	compileClient = require("./compileClient")
 ;
 
 function startServer(routesRelativePath, port, optimize) {
@@ -24,7 +25,7 @@ function startServer(routesRelativePath, port, optimize) {
 	const routesPath = path.join(process.cwd(), routesRelativePath);
 	const routes = require(routesPath);
 
-	const {serverRoutes, webpackConfig} = triton.compileClient(routes, {
+	const {serverRoutes, webpackConfig} = compileClient(routes, {
 		routesDir: path.dirname(routesPath),
 		optimize,
 		outputUrl: "http://localhost:3001/",
