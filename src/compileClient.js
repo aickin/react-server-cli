@@ -47,7 +47,7 @@ module.exports = (routes,
 	// finally, let's pack this up with webpack. 
 	return {
 		serverRoutes,
-		webpackConfig: packageCodeForBrowser(entrypoints, outputDirAbsolute, outputUrl, optimize),
+		compiler: webpack(packageCodeForBrowser(entrypoints, outputDirAbsolute, outputUrl, optimize)),
 	};
 }
 

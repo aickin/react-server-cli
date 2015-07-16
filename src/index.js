@@ -25,7 +25,7 @@ function startServer(routesRelativePath, port, optimize) {
 	const routesPath = path.join(process.cwd(), routesRelativePath);
 	const routes = require(routesPath);
 
-	const {serverRoutes, webpackConfig} = compileClient(routes, {
+	const {serverRoutes, compiler} = compileClient(routes, {
 		routesDir: path.dirname(routesPath),
 		optimize,
 		outputUrl: "http://localhost:3001/",
@@ -35,7 +35,7 @@ function startServer(routesRelativePath, port, optimize) {
 
 	Promise.all([
 		// TODO: make JS port a parameter
-		startJsServer(webpackConfig, 3001),
+		startJsServer(compiler, 3001),
 		startHtmlServer(serverRoutes, port)
 	])
 		.then(() => logger.info("Started HTML & JavaScript servers; ready for requests."))
@@ -53,9 +53,9 @@ const startHtmlServer = (serverRoutes, port) => {
 	});
 };
 
-const startStaticJsServer = (webpackConfig, port) => {
+const startStaticJsServer = (compiler, port) => {
 	return new Promise((resolve, reject) => {
-		webpack(webpackConfig, function(err, stats) {
+		compiler.run(function(err, stats) {
 		    if(err) {
 		    	logger.error("Error during webpack build.");
 		    	logger.error(err);
@@ -77,12 +77,11 @@ const startStaticJsServer = (webpackConfig, port) => {
 	});
 };
 
-const startHotLoadJsServer = (webpackConfig, port) => {
+const startHotLoadJsServer = (compiler, port) => {
 	logger.info("Starting hot reload JavaScript server...");
-	const compiler = webpack(webpackConfig);
 	const compiledPromise = new Promise((resolve, reject) => compiler.plugin("done", () => resolve()));
 	const jsServer = new WebpackDevServer(compiler, {
-		contentBase: webpackConfig.output.path,
+		contentBase: `http://localhost:${port}/`,
 		noInfo: true,
 		hot: true,
 		headers: { 'Access-Control-Allow-Origin': '*' },
