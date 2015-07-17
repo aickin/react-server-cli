@@ -13,32 +13,32 @@ const triton = require("react-server"),
 	compileClient = require("./compileClient")
 ;
 
-function startServer(routesRelativePath, port, optimize) {
-
-	// Logging setup. This typically wouldn't be handled here,
-	// but the application integration stuff isn't part of this project
-	logging.setLevel('main',  'debug');
-	logging.setLevel('time',  'fast');
-	logging.setLevel('gauge', 'ok');
-
+function startServer(routesRelativePath, {
+		port = 3000, 
+		jsPort = 3001, 
+		hot = true,
+		minify = false,
+	} = {}) {
 
 	const routesPath = path.join(process.cwd(), routesRelativePath);
 	const routes = require(routesPath);
 
 	const {serverRoutes, compiler} = compileClient(routes, {
 		routesDir: path.dirname(routesPath),
-		optimize,
-		outputUrl: "http://localhost:3001/",
+		hot,
+		minify,
+		outputUrl: `http://localhost:${jsPort}/`,
 	});
 
-	const startJsServer = optimize ? startStaticJsServer : startHotLoadJsServer;
+	const startJsServer = hot ? startHotLoadJsServer : startStaticJsServer;
 
+	logger.notice("Starting HTML & JavaScript servers...")
 	Promise.all([
 		// TODO: make JS port a parameter
-		startJsServer(compiler, 3001),
+		startJsServer(compiler, jsPort),
 		startHtmlServer(serverRoutes, port)
 	])
-		.then(() => logger.info("Started HTML & JavaScript servers; ready for requests."))
+		.then(() => logger.notice(`Started HTML & JavaScript servers; ready for requests on port ${port}.`));
 }
 
 const startHtmlServer = (serverRoutes, port) => {
@@ -95,7 +95,9 @@ const startHotLoadJsServer = (compiler, port) => {
 // if routeFile is falsey, this method requires a route file on the command line. if routeFile is a string,
 // it uses that file and just parses options from the command line.
 module.exports = (routeFile) => {
-	var argv = require("yargs")
+	const isProduction = (process.env.NODE_ENV === "production");
+
+	const argv = require("yargs")
 		.usage('Usage: $0 [options] routeFile.js')
 		.option("p", {
 			alias: "port",
@@ -103,17 +105,55 @@ module.exports = (routeFile) => {
 			describe: "Port to start listening for react-server",
 			type: "number",
 		})
-		.option("o", {
-			alias: "optimize",
-			default: false,
-			describe: "Optimize client JS when option is present. Takes a bit longer to compile",
+		.option("jsPort", {
+			default: 3001,
+			describe: "Port to start listening for react-server's JavaScript",
+			type: "number",
+		})
+		.option("h", {
+			alias: "hot",
+			default: !isProduction,
+			describe: "Load the app so that it can be hot reloaded in the browser. Default is false in production mode, true otherwise.",
 			type: "boolean",
+		})
+		.option("m", {
+			alias: "minify",
+			default: isProduction,
+			describe: "Optimize client JS when option is present. Takes a bit longer to compile. Default is true in production mode, false otherwise.",
+			type: "boolean",
+		})
+		.option("loglevel", {
+			default: isProduction ? "notice" : "debug",
+			describe: "Set the severity level for the logs being reported. Values are, in ascending order of severity: 'debug', 'info', 'notice', 'warning', 'error', 'critical', 'alert', 'emergency'. Default is 'notice' in production mode, 'debug' otherwise.",
+			type: "string",
 		})
 		.demand(routeFile ? 0 : 1)
 		.argv;
 
+	// Logging setup. This typically wouldn't be handled here,
+	// but the application integration stuff isn't part of this project
+	logging.setLevel('main',  argv.loglevel);
+	logging.setLevel('time',  'fast');
+	logging.setLevel('gauge', 'ok');
+
 	routeFile = routeFile || argv._[0];
 
-	startServer(routeFile, argv.port, argv.optimize);
+	if (argv.hot || !argv.minify) {
+		logger.warning("PRODUCTION WARNING: the following current settings are discouraged in production environments. (If you are developing, carry on!):");
+		if (argv.hot) {
+			logger.warning("-- Hot reload is enabled. Either pass --hot=false or set NODE_ENV=production to turn off.");
+		}
+
+		if (!argv.minify) {
+			logger.warning("-- Minification is disabled. Either pass --minify or set NODE_ENV=production to turn on.");
+		}
+	}
+
+	startServer(routeFile, {
+		port: argv.port, 
+		jsPort: argv.jsPort, 
+		hot: argv.hot,
+		minify: argv.minify
+	});
 
 }

@@ -15,7 +15,8 @@ module.exports = (routes,
 			routesDir = ".", 
 			outputDir = workingDir + "/build",
 			outputUrl = "/static/",
-			optimize = false,
+			hot = true,
+			minify = false,
 		} = {}
 	) => {
 	const workingDirAbsolute = path.resolve(process.cwd(), workingDir);
@@ -27,7 +28,7 @@ module.exports = (routes,
 
 	// for each route, let's create an entrypoint file that includes the page file and the routes file
 	let bootstrapFile = writeClientBootstrapFile(workingDirAbsolute);
-	const entrypointBase = optimize ? [] : [`webpack-dev-server/client?${outputUrl}`,"webpack/hot/only-dev-server"];
+	const entrypointBase = hot ? [`webpack-dev-server/client?${outputUrl}`,"webpack/hot/only-dev-server"] : [];
 	let entrypoints = {};
 	for (let routeName in routes.routes) {
 		let route = routes.routes[routeName];
@@ -47,11 +48,11 @@ module.exports = (routes,
 	// finally, let's pack this up with webpack. 
 	return {
 		serverRoutes,
-		compiler: webpack(packageCodeForBrowser(entrypoints, outputDirAbsolute, outputUrl, optimize)),
+		compiler: webpack(packageCodeForBrowser(entrypoints, outputDirAbsolute, outputUrl, hot, minify)),
 	};
 }
 
-const packageCodeForBrowser = (entrypoints, outputDir, outputUrl, optimize) => {
+const packageCodeForBrowser = (entrypoints, outputDir, outputUrl, hot, minify) => {
 	const extractTextLoader = require.resolve("./NonCachingExtractTextLoader") + "?{remove:true}!css-loader";
 	let webpackConfig = {
 		entry: entrypoints,
@@ -81,7 +82,7 @@ const packageCodeForBrowser = (entrypoints, outputDir, outputUrl, optimize) => {
 		},
 	};
 
-	if (optimize) {
+	if (minify) {
 		webpackConfig.plugins = [
 			new webpack.DefinePlugin({
 				'process.env': {NODE_ENV: '"production"'}
@@ -91,6 +92,9 @@ const packageCodeForBrowser = (entrypoints, outputDir, outputUrl, optimize) => {
 		];
 	} else {
 		webpackConfig.devtool = "#cheap-module-eval-source-map";
+	}
+
+	if (hot) {
 		webpackConfig.module.loaders.unshift({
 				test: /\.jsx?$/,
 				loader: "react-hot",
@@ -102,7 +106,7 @@ const packageCodeForBrowser = (entrypoints, outputDir, outputUrl, optimize) => {
 		];
 	}
 
-	webpackConfig.plugins.push(new ExtractTextPlugin("[name].css"));
+	webpackConfig.plugins = [...(webpackConfig.plugins || []), new ExtractTextPlugin("[name].css")];
 
 	logger.debug("Attempting to package react-server app for client.");
 
