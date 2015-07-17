@@ -1,9 +1,9 @@
 
 module.exports = function(pathToStatic) {
 	return class CoreJsMiddleware {
-		getSystemScripts() {
+		getSystemScripts(next) {
 			const routeName = this.getRequest().getRouteName(); 
-			return `${pathToStatic}${routeName}.bundle.js`;
+			return [`${pathToStatic}${routeName}.bundle.js`, ...next()];
 		}
 	}
 }

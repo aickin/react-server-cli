@@ -81,7 +81,6 @@ const startHotLoadJsServer = (compiler, port) => {
 	logger.info("Starting hot reload JavaScript server...");
 	const compiledPromise = new Promise((resolve, reject) => compiler.plugin("done", () => resolve()));
 	const jsServer = new WebpackDevServer(compiler, {
-		contentBase: `http://localhost:${port}/`,
 		noInfo: true,
 		hot: true,
 		headers: { 'Access-Control-Allow-Origin': '*' },

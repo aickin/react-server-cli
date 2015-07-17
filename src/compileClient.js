@@ -3,8 +3,8 @@ const webpack = require("webpack"),
 	path = require("path"),
 	mkdirp = require("mkdirp"),
 	fs = require("fs"),
-	Q = require("Q");
-
+	Q = require("Q"),
+	ExtractTextPlugin = require("extract-text-webpack-plugin");
 /** 
  * Compiles the routes file in question for browser clients using webpack.
  */
@@ -52,6 +52,7 @@ module.exports = (routes,
 }
 
 const packageCodeForBrowser = (entrypoints, outputDir, outputUrl, optimize) => {
+	const extractTextLoader = require.resolve("./NonCachingExtractTextLoader") + "?{remove:true}!css-loader";
 	let webpackConfig = {
 		entry: entrypoints,
 		output: {
@@ -71,6 +72,11 @@ const packageCodeForBrowser = (entrypoints, outputDir, outputUrl, optimize) => {
 						"runtime",
 					],
 				},
+			},
+			{
+				test: /.css$/,
+				loader: extractTextLoader, 
+				exclude: /node_modules/,
 			}]
 		},
 	};
@@ -96,6 +102,8 @@ const packageCodeForBrowser = (entrypoints, outputDir, outputUrl, optimize) => {
 		];
 	}
 
+	webpackConfig.plugins.push(new ExtractTextPlugin("[name].css"));
+
 	logger.debug("Attempting to package react-server app for client.");
 
 	return webpackConfig;
@@ -108,7 +116,8 @@ const writeWebpackCompatibleRoutesFile = (routes, routesDir, workingDirAbsolute,
 		return `require("${path.relative(workingDirAbsolute, path.resolve(routesDir, middlewareRelativePath))}")`
 	});
 	routesOutput.push("var coreJsMiddleware = require('react-server-cli/target/coreJsMiddleware');\n");
-	routesOutput.push(`module.exports = { middleware:[coreJsMiddleware('${staticUrl}'),${existingMiddleware.join(",")}], routes:{`);
+	routesOutput.push("var coreCssMiddleware = require('react-server-cli/target/coreCssMiddleware');\n");
+	routesOutput.push(`module.exports = { middleware:[coreJsMiddleware('${staticUrl}'),coreCssMiddleware('${staticUrl}'),${existingMiddleware.join(",")}], routes:{`);
 	
 	for (let routeName in routes.routes) {
 		let route = routes.routes[routeName];
