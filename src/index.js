@@ -92,13 +92,15 @@ const startHotLoadJsServer = (compiler, port) => {
 		.then(() => logger.info(`Started hot reload JavaScript server on port ${port}`));
 };
 
-// if routeFile is falsey, this method requires a route file on the command line. if routeFile is a string,
-// it uses that file and just parses options from the command line.
-module.exports = (routeFile) => {
+module.exports = () => {
 	const isProduction = (process.env.NODE_ENV === "production");
 
 	const argv = require("yargs")
-		.usage('Usage: $0 [options] routeFile.js')
+		.usage('Usage: $0 [options]')
+		.option("routes", {
+			default: "./routes.js",
+			describe: "The routes file to load.",
+		})
 		.option("p", {
 			alias: "port",
 			default: 3000,
@@ -127,7 +129,7 @@ module.exports = (routeFile) => {
 			describe: "Set the severity level for the logs being reported. Values are, in ascending order of severity: 'debug', 'info', 'notice', 'warning', 'error', 'critical', 'alert', 'emergency'. Default is 'notice' in production mode, 'debug' otherwise.",
 			type: "string",
 		})
-		.demand(routeFile ? 0 : 1)
+		.demand(0)
 		.argv;
 
 	// Logging setup. This typically wouldn't be handled here,
@@ -135,8 +137,6 @@ module.exports = (routeFile) => {
 	logging.setLevel('main',  argv.loglevel);
 	logging.setLevel('time',  'fast');
 	logging.setLevel('gauge', 'ok');
-
-	routeFile = routeFile || argv._[0];
 
 	if (argv.hot || !argv.minify) {
 		logger.warning("PRODUCTION WARNING: the following current settings are discouraged in production environments. (If you are developing, carry on!):");
@@ -149,7 +149,7 @@ module.exports = (routeFile) => {
 		}
 	}
 
-	startServer(routeFile, {
+	startServer(argv.routes, {
 		port: argv.port, 
 		jsPort: argv.jsPort, 
 		hot: argv.hot,
