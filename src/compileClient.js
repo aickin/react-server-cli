@@ -67,12 +67,6 @@ const packageCodeForBrowser = (entrypoints, outputDir, outputUrl, hot, minify) =
 				test: /\.jsx?$/,
 				loader: "babel",
 				exclude: /node_modules/,
-				query: {
-					stage: 1, 
-					optional: [
-						"runtime",
-					],
-				},
 			},
 			{
 				test: /.css$/,
