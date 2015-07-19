@@ -47,7 +47,7 @@ If you want to customize your Babel options, create a `.babelrc` file in your ro
 ##Options
 Smart defaults are the goal, so it support Babel out of the box, and it has two base modes: **development** and **production**. `react-server-cli` will determine which base mode it's in by looking at (in order):
 
-1. If the `--production` flag was sent in, it's **production**. (NOT YET IMPLEMENTED)
+1. If the `--production` flag was sent in, it's **production**.
 1. If `process.env.NODE_ENV` is `'production'`, it's **production**.
 1. Otherwise, the base mode is **development**.
 
