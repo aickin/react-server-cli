@@ -8,8 +8,8 @@ const logging = require("react-server").logging,
 export default function () {
 	// weirdly, we parse the args twice. the first time we are just looking for --production, which
 	// affects the default values for the other args.
-	let argv = parseCliArgs(false);
-	argv = parseCliArgs(argv.production || (process.env.NODE_ENV === "production"));
+	const productionCliArg = parseCliArgs(false).production;
+	const argv = parseCliArgs(productionCliArg || (process.env.NODE_ENV === "production"));
 
 	// Logging setup. This typically wouldn't be handled here,
 	// but the application integration stuff isn't part of this project
