@@ -63,7 +63,7 @@ const startStaticJsServer = (compiler, port) => {
 		    	// TODO: inspect stats to see if there are errors -sra.
 		    } else {
 			    logger.debug("Successfully compiled static JavaScript.");
-	    		// TODO: make this parameterized based on what is returned from triton.compileClient
+	    		// TODO: make this parameterized based on what is returned from compileClient
 	    		let server = express();
 				server.use('/', compression(), express.static('__clientTemp/build'));
 				logger.info("Starting static JavaScript server...");
@@ -129,6 +129,8 @@ module.exports = () => {
 			describe: "Set the severity level for the logs being reported. Values are, in ascending order of severity: 'debug', 'info', 'notice', 'warning', 'error', 'critical', 'alert', 'emergency'. Default is 'notice' in production mode, 'debug' otherwise.",
 			type: "string",
 		})
+		.help('?')
+		.alias('?', 'help')
 		.demand(0)
 		.argv;
 
