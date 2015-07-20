@@ -92,6 +92,11 @@ Minify client JavaScript and CSS.
 
 Defaults to **false** in development mode and **true** in production.
 
+#### --bundleperroute
+Create a separate client JavaScript bundle for every route in the routes file, which increases compile time, but makes JavaScript loading faster at runtime. 
+
+Defaults to **false** in development mode and **true** in production.
+
 #### --loglevel
 Sets the severity level for the logs being reported. Values are, in ascending order of severity: 'debug', 'info', 'notice', 'warning', 'error', 'critical', 'alert', 'emergency'.
 

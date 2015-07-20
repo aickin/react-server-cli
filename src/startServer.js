@@ -18,6 +18,7 @@ export default function(routesRelativePath, {
 		jsPort = 3001, 
 		hot = true,
 		minify = false,
+		bundlePerRoute = false,
 	} = {}) {
 
 	const routesPath = path.join(process.cwd(), routesRelativePath);
@@ -28,6 +29,7 @@ export default function(routesRelativePath, {
 		hot,
 		minify,
 		outputUrl: `http://localhost:${jsPort}/`,
+		bundlePerRoute,
 	});
 
 	const startJsServer = hot ? startHotLoadJsServer : startStaticJsServer;

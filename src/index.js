@@ -17,14 +17,18 @@ export default function () {
 	logging.setLevel('time',  'fast');
 	logging.setLevel('gauge', 'ok');
 
-	if (argv.hot || !argv.minify) {
+	if (argv.hot || !argv.minify || !argv.bundleperroute) {
 		logger.warning("PRODUCTION WARNING: the following current settings are discouraged in production environments. (If you are developing, carry on!):");
 		if (argv.hot) {
-			logger.warning("-- Hot reload is enabled. Either pass --hot=false or set NODE_ENV=production to turn off.");
+			logger.warning("-- Hot reload is enabled. Either pass --hot=false, or --production, or set NODE_ENV=production to turn off.");
 		}
 
 		if (!argv.minify) {
-			logger.warning("-- Minification is disabled. Either pass --minify or set NODE_ENV=production to turn on.");
+			logger.warning("-- Minification is disabled. Either pass --minify, or --production, or set NODE_ENV=production to turn on.");
+		}
+
+		if (!argv.bundleperroute) {
+			logger.warning("-- Bundle per route is disabled. Either pass --bundleperroute, or --production, or set NODE_ENV=production to turn on.");
 		}
 	}
 
@@ -32,7 +36,8 @@ export default function () {
 		port: argv.port, 
 		jsPort: argv.jsPort, 
 		hot: argv.hot,
-		minify: argv.minify
+		minify: argv.minify,
+		bundlePerRoute: argv.bundleperroute,
 	});
 
 }
@@ -71,6 +76,11 @@ const parseCliArgs = (isProduction) => {
 			default: isProduction ? "notice" : "debug",
 			describe: "Set the severity level for the logs being reported. Values are, in ascending order of severity: 'debug', 'info', 'notice', 'warning', 'error', 'critical', 'alert', 'emergency'. Default is 'notice' in production mode, 'debug' otherwise.",
 			type: "string",
+		})
+		.option("bundleperroute", {
+			default: isProduction,
+			describe: "Create a separate client JavaScript bundle for every route in the routes file, which increases compile time, but makes JavaScript loading faster at runtime. Defaults is true in production mode, false otherwise.",
+			type: "boolean",
 		})
 		.option("production", {
 			default: false,
