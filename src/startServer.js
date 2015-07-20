@@ -19,6 +19,7 @@ export default function(routesRelativePath, {
 		hot = true,
 		minify = false,
 		bundlePerRoute = false,
+		compileOnly = false,
 	} = {}) {
 
 	const routesPath = path.join(process.cwd(), routesRelativePath);
@@ -32,15 +33,28 @@ export default function(routesRelativePath, {
 		bundlePerRoute,
 	});
 
-	const startJsServer = hot ? startHotLoadJsServer : startStaticJsServer;
+	if (compileOnly) {
+		logger.notice("Starting compilation of client JavaScript...");
+		compiler.run((err, stats) => {
+		    if(err) {
+		    	logger.error("Error during compilation.");
+		    	logger.error(err);
+		    	// TODO: inspect stats to see if there are errors -sra.
+		    } else {
+			    logger.notice("Successfully compiled client JavaScript.");
+			}
+		});
+	} else {
+		const startJsServer = hot ? startHotLoadJsServer : startStaticJsServer;
 
-	logger.notice("Starting HTML & JavaScript servers...")
-	Promise.all([
-		// TODO: make JS port a parameter
-		startJsServer(compiler, jsPort),
-		startHtmlServer(serverRoutes, port)
-	])
-		.then(() => logger.notice(`Started HTML & JavaScript servers; ready for requests on port ${port}.`));
+		logger.notice("Starting HTML & JavaScript servers...")
+		Promise.all([
+			// TODO: make JS port a parameter
+			startJsServer(compiler, jsPort),
+			startHtmlServer(serverRoutes, port)
+		])
+			.then(() => logger.notice(`Started HTML & JavaScript servers; ready for requests on port ${port}.`));
+	}
 }
 
 const startHtmlServer = (serverRoutes, port) => {

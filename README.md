@@ -93,9 +93,16 @@ Minify client JavaScript and CSS.
 Defaults to **false** in development mode and **true** in production.
 
 #### --bundleperroute
-Create a separate client JavaScript bundle for every route in the routes file, which increases compile time, but makes JavaScript loading faster at runtime. 
+Create a separate client JavaScript bundle for every route in the routes file, which increases compile time, but makes JavaScript loading faster at runtime.
 
 Defaults to **false** in development mode and **true** in production.
+
+#### --compileonly
+Compile the client JavaScript only, and don't start any servers. This is what you want to do if you are building the client JavaScript to be hosted on a CDN. Unless you have a very specific reason, it's almost always a good idea to only do this in production mode.
+
+For maximum compatibility between servers and compiled JavaScript, this option implies --bundleperroute.
+
+Defaults to false.
 
 #### --loglevel
 Sets the severity level for the logs being reported. Values are, in ascending order of severity: 'debug', 'info', 'notice', 'warning', 'error', 'critical', 'alert', 'emergency'.

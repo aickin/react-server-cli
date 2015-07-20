@@ -17,6 +17,11 @@ export default function () {
 	logging.setLevel('time',  'fast');
 	logging.setLevel('gauge', 'ok');
 
+	if (!argv.bundleperroute && argv.compileonly) {
+		logger.warning("WARNING: It is not valid to use --compileonly without --bundleperroute. Setting bundleperroute to true.");
+		argv.bundleperroute = true;
+	}
+
 	if (argv.hot || !argv.minify || !argv.bundleperroute) {
 		logger.warning("PRODUCTION WARNING: the following current settings are discouraged in production environments. (If you are developing, carry on!):");
 		if (argv.hot) {
@@ -38,6 +43,7 @@ export default function () {
 		hot: argv.hot,
 		minify: argv.minify,
 		bundlePerRoute: argv.bundleperroute,
+		compileOnly: argv.compileonly,
 	});
 
 }
@@ -80,6 +86,11 @@ const parseCliArgs = (isProduction) => {
 		.option("bundleperroute", {
 			default: isProduction,
 			describe: "Create a separate client JavaScript bundle for every route in the routes file, which increases compile time, but makes JavaScript loading faster at runtime. Defaults is true in production mode, false otherwise.",
+			type: "boolean",
+		})
+		.option("compileonly", {
+			default: false,
+			describe: "Compile the client JavaScript only, and don't start any servers. This is what you want to do if you are building the client JavaScript to be hosted on a CDN. Unless you have a very specific reason, it's almost alway a good idea to only do this in production mode. Defaults to false.",
 			type: "boolean",
 		})
 		.option("production", {
