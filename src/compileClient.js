@@ -105,8 +105,6 @@ const packageCodeForBrowser = (entrypoints, outputDir, outputUrl, hot, minify) =
 		];
 	}
 
-	logger.debug("Attempting to package react-server app for client.");
-
 	return webpackConfig;
 };
 

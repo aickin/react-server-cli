@@ -47,12 +47,12 @@ export default function(routesRelativePath, {
 	} else {
 		const startJsServer = hot ? startHotLoadJsServer : startStaticJsServer;
 
-		logger.notice("Starting HTML & JavaScript servers...")
+		logger.notice("Starting servers...")
 		Promise.all([
 			jsUrl ? Promise.resolve() : startJsServer(compiler, jsPort),
 			startHtmlServer(serverRoutes, port)
 		])
-			.then(() => logger.notice(`Started HTML & JavaScript servers; ready for requests on port ${port}.`));
+			.then(() => logger.notice(`Ready for requests on port ${port}.`));
 	}
 }
 
