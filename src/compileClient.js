@@ -80,10 +80,14 @@ const packageCodeForBrowser = (entrypoints, outputDir, outputUrl, hot, minify) =
 				exclude: /node_modules/,
 			}]
 		},
+		plugins: [
+			new ExtractTextPlugin("[name].css")
+		],
 	};
 
 	if (minify) {
 		webpackConfig.plugins = [
+			...webpackConfig.plugins,
 			new webpack.DefinePlugin({
 				'process.env': {NODE_ENV: '"production"'}
 			}),
@@ -101,12 +105,11 @@ const packageCodeForBrowser = (entrypoints, outputDir, outputUrl, hot, minify) =
 				exclude: /node_modules/,
 		});
 		webpackConfig.plugins = [
+			...webpackConfig.plugins,
 			new webpack.HotModuleReplacementPlugin(),
 			new webpack.NoErrorsPlugin()
 		];
 	}
-
-	webpackConfig.plugins = [...(webpackConfig.plugins || []), new ExtractTextPlugin("[name].css")];
 
 	logger.debug("Attempting to package react-server app for client.");
 
