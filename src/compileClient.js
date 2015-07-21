@@ -17,7 +17,6 @@ module.exports = (routes,
 			outputUrl = "/static/",
 			hot = true,
 			minify = false,
-			bundlePerRoute = false,
 		} = {}
 	) => {
 	const workingDirAbsolute = path.resolve(process.cwd(), workingDir);
@@ -30,26 +29,21 @@ module.exports = (routes,
 	// for each route, let's create an entrypoint file that includes the page file and the routes file
 	let bootstrapFile = writeClientBootstrapFile(workingDirAbsolute);
 	const entrypointBase = hot ? [`webpack-dev-server/client?${outputUrl}`,"webpack/hot/only-dev-server"] : [];
-	// always include a bundle that just has the basic runtime for react-server.
-	let entrypoints = {
-		__runtime: [...entrypointBase, bootstrapFile]
-	};
-	if (bundlePerRoute) {
-		for (let routeName in routes.routes) {
-			let route = routes.routes[routeName];
-			var absolutePathToPage = path.resolve(routesDirAbsolute, route.page);
+	let entrypoints = {};
+	for (let routeName in routes.routes) {
+		let route = routes.routes[routeName];
+		var absolutePathToPage = path.resolve(routesDirAbsolute, route.page);
 
-			entrypoints[routeName] = [
-				...entrypointBase,
-				bootstrapFile,
-				absolutePathToPage,
-			];
-		}
+		entrypoints[routeName] = [
+			...entrypointBase,
+			bootstrapFile,
+			absolutePathToPage,
+		];
 	}
 
 	// now rewrite the routes file out in a webpack-compatible way.
-	const serverRoutes = writeWebpackCompatibleRoutesFile(routes, routesDir, workingDirAbsolute, outputUrl, bundlePerRoute, false);
-	const clientRoutes = writeWebpackCompatibleRoutesFile(routes, routesDir, workingDirAbsolute, outputUrl, bundlePerRoute, true);
+	const serverRoutes = writeWebpackCompatibleRoutesFile(routes, routesDir, workingDirAbsolute, outputUrl, false);
+	const clientRoutes = writeWebpackCompatibleRoutesFile(routes, routesDir, workingDirAbsolute, outputUrl, true);
 
 	// finally, let's pack this up with webpack. 
 	return {
@@ -116,7 +110,7 @@ const packageCodeForBrowser = (entrypoints, outputDir, outputUrl, hot, minify) =
 	return webpackConfig;
 };
 
-const writeWebpackCompatibleRoutesFile = (routes, routesDir, workingDirAbsolute, staticUrl, bundlePerRoute, isClient) => {
+const writeWebpackCompatibleRoutesFile = (routes, routesDir, workingDirAbsolute, staticUrl, isClient) => {
 	let routesOutput = [];
 
 	const existingMiddleware = routes.middleware.map((middlewareRelativePath) => {
@@ -127,7 +121,7 @@ const writeWebpackCompatibleRoutesFile = (routes, routesDir, workingDirAbsolute,
 	routesOutput.push(`
 		module.exports = { 
 			middleware:[
-				coreJsMiddleware(${JSON.stringify(staticUrl)},${bundlePerRoute}),
+				coreJsMiddleware(${JSON.stringify(staticUrl)}),
 				coreCssMiddleware(${JSON.stringify(staticUrl)}),
 				${existingMiddleware.join(",")}
 			], 

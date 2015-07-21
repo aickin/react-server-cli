@@ -1,8 +1,8 @@
 
-module.exports = function(pathToStatic, bundlePerRoute) {
+module.exports = function(pathToStatic) {
 	return class CoreJsMiddleware {
 		getSystemScripts(next) {
-			const routeName = bundlePerRoute ? this.getRequest().getRouteName() : "__runtime"; 
+			const routeName = this.getRequest().getRouteName(); 
 			const baseUrl = pathToStatic || "/";
 			return [
 				`${baseUrl}${routeName}.bundle.js`, 

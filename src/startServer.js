@@ -18,10 +18,8 @@ export default function(routesRelativePath, {
 		jsPort = 3001, 
 		hot = true,
 		minify = false,
-		bundlePerRoute = false,
 		compileOnly = false,
 		jsUrl,
-
 	} = {}) {
 
 	const routesPath = path.join(process.cwd(), routesRelativePath);
@@ -33,7 +31,6 @@ export default function(routesRelativePath, {
 		hot,
 		minify,
 		outputUrl: compileOnly ? null : outputUrl, // when compiling, never bind the resulting JS to a URL.
-		bundlePerRoute,
 	});
 
 	if (compileOnly) {
