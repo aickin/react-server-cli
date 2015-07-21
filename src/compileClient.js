@@ -121,7 +121,14 @@ const writeWebpackCompatibleRoutesFile = (routes, routesDir, workingDirAbsolute,
 	});
 	routesOutput.push("var coreJsMiddleware = require('react-server-cli/target/coreJsMiddleware');\n");
 	routesOutput.push("var coreCssMiddleware = require('react-server-cli/target/coreCssMiddleware');\n");
-	routesOutput.push(`module.exports = { middleware:[coreJsMiddleware('${staticUrl}',${bundlePerRoute}),coreCssMiddleware('${staticUrl}'),${existingMiddleware.join(",")}], routes:{`);
+	routesOutput.push(`
+		module.exports = { 
+			middleware:[
+				coreJsMiddleware(${JSON.stringify(staticUrl)},${bundlePerRoute}),
+				coreCssMiddleware(${JSON.stringify(staticUrl)}),
+				${existingMiddleware.join(",")}
+			], 
+			routes:{`);
 	
 	for (let routeName in routes.routes) {
 		let route = routes.routes[routeName];
@@ -159,6 +166,16 @@ const writeWebpackCompatibleRoutesFile = (routes, routesDir, workingDirAbsolute,
 const writeClientBootstrapFile = (outputDir) => {
 	var outputFile = outputDir + "/entry.js";
 	fs.writeFileSync(outputFile, `
+		if (typeof window !== "undefined") {
+			window.__setReactServerBase = function(path) {
+				// according to http://webpack.github.io/docs/configuration.html#output-publicpath 
+				// we should never set __webpack_public_path__ when hot module replacement is on.
+				if (!module.hot) {
+					__webpack_public_path__ = path;
+					window.__reactServerBase = path;
+				}
+			}
+		}
 		var reactServer = require("react-server");
 		reactServer.renderClient(require("./routes_client"), window);
 	`

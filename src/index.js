@@ -22,7 +22,13 @@ export default function () {
 		argv.bundleperroute = true;
 	}
 
-	if (argv.hot || !argv.minify || !argv.bundleperroute) {
+	// if we jsurl is set (i.e. we have JS on a CDN), then there is a bundle per route.
+	if (argv.jsurl) {
+		argv.bundleperroute = true;
+	}
+	
+	// if arg.jsurl is set, then hot, minify, and bundleperroute are moot.
+	if (!argv.jsurl && (argv.hot || !argv.minify || !argv.bundleperroute)) {
 		logger.warning("PRODUCTION WARNING: the following current settings are discouraged in production environments. (If you are developing, carry on!):");
 		if (argv.hot) {
 			logger.warning("-- Hot reload is enabled. Either pass --hot=false, or --production, or set NODE_ENV=production to turn off.");
@@ -44,6 +50,7 @@ export default function () {
 		minify: argv.minify,
 		bundlePerRoute: argv.bundleperroute,
 		compileOnly: argv.compileonly,
+		jsUrl: argv.jsurl, 
 	});
 
 }
@@ -92,6 +99,10 @@ const parseCliArgs = (isProduction) => {
 			default: false,
 			describe: "Compile the client JavaScript only, and don't start any servers. This is what you want to do if you are building the client JavaScript to be hosted on a CDN. Unless you have a very specific reason, it's almost alway a good idea to only do this in production mode. Defaults to false.",
 			type: "boolean",
+		})
+		.option("jsurl", {
+			describe: "A URL base for the pre-compiled client JavaScript. Setting a value for jsurl means that react-server-cli will not compile the client JavaScript at all, and it will not serve up any JavaScript. Obviously, this means that --jsurl overrides all of the options related to JavaScript compilation: --hot, --minify, and --bundleperroute.",
+			type: "string",
 		})
 		.option("production", {
 			default: false,

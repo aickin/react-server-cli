@@ -20,16 +20,19 @@ export default function(routesRelativePath, {
 		minify = false,
 		bundlePerRoute = false,
 		compileOnly = false,
+		jsUrl,
+
 	} = {}) {
 
 	const routesPath = path.join(process.cwd(), routesRelativePath);
 	const routes = require(routesPath);
+	const outputUrl = jsUrl || `http://localhost:${jsPort}/`;
 
 	const {serverRoutes, compiler} = compileClient(routes, {
 		routesDir: path.dirname(routesPath),
 		hot,
 		minify,
-		outputUrl: `http://localhost:${jsPort}/`,
+		outputUrl: compileOnly ? null : outputUrl, // when compiling, never bind the resulting JS to a URL.
 		bundlePerRoute,
 	});
 
@@ -49,8 +52,7 @@ export default function(routesRelativePath, {
 
 		logger.notice("Starting HTML & JavaScript servers...")
 		Promise.all([
-			// TODO: make JS port a parameter
-			startJsServer(compiler, jsPort),
+			jsUrl ? Promise.resolve() : startJsServer(compiler, jsPort),
 			startHtmlServer(serverRoutes, port)
 		])
 			.then(() => logger.notice(`Started HTML & JavaScript servers; ready for requests on port ${port}.`));

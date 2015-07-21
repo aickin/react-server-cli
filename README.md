@@ -102,7 +102,12 @@ Compile the client JavaScript only, and don't start any servers. This is what yo
 
 For maximum compatibility between servers and compiled JavaScript, this option implies --bundleperroute.
 
-Defaults to false.
+Defaults to **false**.
+
+#### --jsurl
+A URL base for the pre-compiled client JavaScript. Setting a value for jsurl means that react-server-cli will not compile the client JavaScript at all, and it will not serve up any JavaScript. Obviously, this means that --jsurl overrides all of the options related to JavaScript compilation: --hot, --minify, and --bundleperroute.
+
+Defaults to **null**.
 
 #### --loglevel
 Sets the severity level for the logs being reported. Values are, in ascending order of severity: 'debug', 'info', 'notice', 'warning', 'error', 'critical', 'alert', 'emergency'.

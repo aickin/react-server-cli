@@ -3,7 +3,11 @@ module.exports = function(pathToStatic) {
 	return class CoreCssMiddleware {
 		getHeadStylesheets(next) {
 			const routeName = this.getRequest().getRouteName(); 
-			return [`${pathToStatic}${routeName}.css`, ...next()];
+			const baseUrl = pathToStatic || (typeof window !== "undefined" ? window.__reactServerBase : "/");
+			return [
+				`${baseUrl}${routeName}.css`, 
+				...next()
+			];
 		}
 	}
 }
