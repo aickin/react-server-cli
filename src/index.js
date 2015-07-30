@@ -18,14 +18,18 @@ export default function () {
 	logging.setLevel('gauge', 'ok');
 
 	// if arg.jsurl is set, then hot and minify are moot.
-	if (!argv.jsurl && (argv.hot || !argv.minify)) {
+	if ((!argv.jsurl && (argv.hot || !argv.minify)) ||  process.env.NODE_ENV !== "production") {
 		logger.warning("PRODUCTION WARNING: the following current settings are discouraged in production environments. (If you are developing, carry on!):");
 		if (argv.hot) {
-			logger.warning("-- Hot reload is enabled. Either pass --hot=false or set NODE_ENV=production to turn off.");
+			logger.warning("-- Hot reload is enabled. Pass --hot=false, pass --production, or set NODE_ENV=production to turn off.");
 		}
 
 		if (!argv.minify) {
-			logger.warning("-- Minification is disabled. Either pass --minify or set NODE_ENV=production to turn on.");
+			logger.warning("-- Minification is disabled. Pass --minify, pass --production, or set NODE_ENV=production to turn on.");
+		}
+
+		if (process.env.NODE_ENV !== "production") {
+			logger.warning("-- NODE_ENV is not set to \"production\".");
 		}
 	}
 
