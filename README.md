@@ -1,5 +1,7 @@
 # react-server-cli
 
+## NOTE: THIS PROJECT IS IN ALPHA. PLEASE DO NOT USE IN PRODUCTION.
+
 A simple command line app that will compile a routes file for the client and start up express. To use:
 
 1. Add `react-server-cli` to your project's `package.json`
