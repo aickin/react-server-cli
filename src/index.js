@@ -1,3 +1,5 @@
+const yargs = require("yargs");
+
 const parseCliArgs = (isProduction) => {
 	return yargs(process.argv)
 		.usage('Usage: $0 [options]')
@@ -66,11 +68,11 @@ if (isProduction && !process.env.NODE_ENV) {
 const argv = parseCliArgs(isProduction);
 
 // TODO: do we need a post-processor for logger here?
+// these require calls are after the argument parsing because we want to set NODE_ENV
+// before they get loaded.
 const logging = require("react-server").logging,
 	logger = logging.getLogger({name: "react-server-cli/index.js", color: {server: 9}}),
-	startServer = require("./startServer"),
-	yargs = require("yargs")
-;
+	startServer = require("./startServer");
 
 // Logging setup. This typically wouldn't be handled here,
 // but the application integration stuff isn't part of this project
@@ -78,7 +80,9 @@ logging.setLevel('main',  argv.loglevel);
 logging.setLevel('time',  'fast');
 logging.setLevel('gauge', 'ok');
 
-// if arg.jsurl is set, then hot and minify are moot.
+// if the server is being launched with some bad practices for production mode, then we
+// should output a warning. if arg.jsurl is set, then hot and minify are moot, since
+// we aren't serving JavaScript & CSS at all.
 if ((!argv.jsurl && (argv.hot || !argv.minify)) ||  process.env.NODE_ENV !== "production") {
 	logger.warning("PRODUCTION WARNING: the following current settings are discouraged in production environments. (If you are developing, carry on!):");
 	if (argv.hot) {
