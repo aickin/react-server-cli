@@ -5,14 +5,14 @@ const webpack = require("webpack"),
 	fs = require("fs"),
 	Q = require("Q"),
 	ExtractTextPlugin = require("extract-text-webpack-plugin");
-/** 
+/**
  * Compiles the routes file in question for browser clients using webpack.
  */
  // TODO: add options for sourcemaps.
-module.exports = (routes, 
+module.exports = (routes,
 		{
-			workingDir = "./__clientTemp", 
-			routesDir = ".", 
+			workingDir = "./__clientTemp",
+			routesDir = ".",
 			outputDir = workingDir + "/build",
 			outputUrl = "/static/",
 			hot = true,
@@ -45,7 +45,7 @@ module.exports = (routes,
 	const serverRoutes = writeWebpackCompatibleRoutesFile(routes, routesDir, workingDirAbsolute, outputUrl, false);
 	const clientRoutes = writeWebpackCompatibleRoutesFile(routes, routesDir, workingDirAbsolute, outputUrl, true);
 
-	// finally, let's pack this up with webpack. 
+	// finally, let's pack this up with webpack.
 	return {
 		serverRoutes,
 		compiler: webpack(packageCodeForBrowser(entrypoints, outputDirAbsolute, outputUrl, hot, minify)),
@@ -70,7 +70,7 @@ const packageCodeForBrowser = (entrypoints, outputDir, outputUrl, hot, minify) =
 			},
 			{
 				test: /.css$/,
-				loader: extractTextLoader, 
+				loader: extractTextLoader,
 				exclude: /node_modules/,
 			}]
 		},
@@ -117,14 +117,14 @@ const writeWebpackCompatibleRoutesFile = (routes, routesDir, workingDirAbsolute,
 	routesOutput.push("var coreJsMiddleware = require('react-server-cli/target/coreJsMiddleware');\n");
 	routesOutput.push("var coreCssMiddleware = require('react-server-cli/target/coreCssMiddleware');\n");
 	routesOutput.push(`
-		module.exports = { 
+		module.exports = {
 			middleware:[
 				coreJsMiddleware(${JSON.stringify(staticUrl)}),
 				coreCssMiddleware(${JSON.stringify(staticUrl)}),
 				${existingMiddleware.join(",")}
-			], 
+			],
 			routes:{`);
-	
+
 	for (let routeName in routes.routes) {
 		let route = routes.routes[routeName];
 
@@ -135,7 +135,7 @@ const writeWebpackCompatibleRoutesFile = (routes, routesDir, workingDirAbsolute,
 			routesOutput.push("\n\t\t\t" + `${name}: "${route[name]}",`);
 		}
 		routesOutput.push(`
-			page: function() { 
+			page: function() {
 				return {
 					done: function(cb) {`);
 		if (isClient) {
@@ -163,7 +163,7 @@ const writeClientBootstrapFile = (outputDir) => {
 	fs.writeFileSync(outputFile, `
 		if (typeof window !== "undefined") {
 			window.__setReactServerBase = function(path) {
-				// according to http://webpack.github.io/docs/configuration.html#output-publicpath 
+				// according to http://webpack.github.io/docs/configuration.html#output-publicpath
 				// we should never set __webpack_public_path__ when hot module replacement is on.
 				if (!module.hot) {
 					__webpack_public_path__ = path;
@@ -172,8 +172,9 @@ const writeClientBootstrapFile = (outputDir) => {
 			}
 		}
 		var reactServer = require("react-server");
-		reactServer.renderClient(require("./routes_client"), window);
-	`
+		window.rfBootstrap = function() {
+			new reactServer.ClientController({routes: require("./routes_client")}).init();
+		}`
 	);
 	return outputFile;
 };

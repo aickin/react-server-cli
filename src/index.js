@@ -1,3 +1,6 @@
+// TODO: take this out when PR #7 in react-server is merged.
+process.env.TRITON_CONFIGS = process.cwd();
+
 	// TODO: do we need a post-processor for logger here?
 const logging = require("react-server").logging,
 	logger = logging.getLogger({name: "react-server-cli/index.js", color: {server: 9}}),
@@ -34,12 +37,12 @@ export default function () {
 	}
 
 	startServer(argv.routes, {
-		port: argv.port, 
-		jsPort: argv.jsPort, 
+		port: argv.port,
+		jsPort: argv.jsPort,
 		hot: argv.hot,
 		minify: argv.minify,
 		compileOnly: argv.compileonly,
-		jsUrl: argv.jsurl, 
+		jsUrl: argv.jsurl,
 	});
 
 }
