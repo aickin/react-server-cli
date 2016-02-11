@@ -1,51 +1,52 @@
 // TODO: take this out when PR #7 in react-server is merged.
 process.env.TRITON_CONFIGS = process.cwd();
 
-	// TODO: do we need a post-processor for logger here?
+// weirdly, we parse the args twice. the first time we are just looking for --production, which
+// affects the default values for the other args.
+const isProduction = parseCliArgs(false).production || (process.env.NODE_ENV === "production");
+// now if production was sent in on the command line, let's set NODE_ENV if it's unset.
+if (isProduction && !process.env.NODE_ENV) {
+	process.env.NODE_ENV = "production";
+}
+const argv = parseCliArgs(isProduction);
+
+// TODO: do we need a post-processor for logger here?
 const logging = require("react-server").logging,
 	logger = logging.getLogger({name: "react-server-cli/index.js", color: {server: 9}}),
 	startServer = require("./startServer"),
 	yargs = require("yargs")
 ;
 
-export default function () {
-	// weirdly, we parse the args twice. the first time we are just looking for --production, which
-	// affects the default values for the other args.
-	const productionCliArg = parseCliArgs(false).production;
-	const argv = parseCliArgs(productionCliArg || (process.env.NODE_ENV === "production"));
+// Logging setup. This typically wouldn't be handled here,
+// but the application integration stuff isn't part of this project
+logging.setLevel('main',  argv.loglevel);
+logging.setLevel('time',  'fast');
+logging.setLevel('gauge', 'ok');
 
-	// Logging setup. This typically wouldn't be handled here,
-	// but the application integration stuff isn't part of this project
-	logging.setLevel('main',  argv.loglevel);
-	logging.setLevel('time',  'fast');
-	logging.setLevel('gauge', 'ok');
-
-	// if arg.jsurl is set, then hot and minify are moot.
-	if ((!argv.jsurl && (argv.hot || !argv.minify)) ||  process.env.NODE_ENV !== "production") {
-		logger.warning("PRODUCTION WARNING: the following current settings are discouraged in production environments. (If you are developing, carry on!):");
-		if (argv.hot) {
-			logger.warning("-- Hot reload is enabled. Pass --hot=false, pass --production, or set NODE_ENV=production to turn off.");
-		}
-
-		if (!argv.minify) {
-			logger.warning("-- Minification is disabled. Pass --minify, pass --production, or set NODE_ENV=production to turn on.");
-		}
-
-		if (process.env.NODE_ENV !== "production") {
-			logger.warning("-- NODE_ENV is not set to \"production\".");
-		}
+// if arg.jsurl is set, then hot and minify are moot.
+if ((!argv.jsurl && (argv.hot || !argv.minify)) ||  process.env.NODE_ENV !== "production") {
+	logger.warning("PRODUCTION WARNING: the following current settings are discouraged in production environments. (If you are developing, carry on!):");
+	if (argv.hot) {
+		logger.warning("-- Hot reload is enabled. Pass --hot=false, pass --production, or set NODE_ENV=production to turn off.");
 	}
 
-	startServer(argv.routes, {
-		port: argv.port,
-		jsPort: argv.jsPort,
-		hot: argv.hot,
-		minify: argv.minify,
-		compileOnly: argv.compileonly,
-		jsUrl: argv.jsurl,
-	});
+	if (!argv.minify) {
+		logger.warning("-- Minification is disabled. Pass --minify, pass --production, or set NODE_ENV=production to turn on.");
+	}
 
+	if (process.env.NODE_ENV !== "production") {
+		logger.warning("-- NODE_ENV is not set to \"production\".");
+	}
 }
+
+startServer(argv.routes, {
+	port: argv.port,
+	jsPort: argv.jsPort,
+	hot: argv.hot,
+	minify: argv.minify,
+	compileOnly: argv.compileonly,
+	jsUrl: argv.jsurl,
+});
 
 const parseCliArgs = (isProduction) => {
 	return yargs(process.argv)
