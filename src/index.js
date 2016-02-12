@@ -31,8 +31,8 @@ const parseCliArgs = (isProduction) => {
 			type: "boolean",
 		})
 		.option("loglevel", {
-			default: isProduction ? "warning" : "debug",
-			describe: "Set the severity level for the logs being reported. Values are, in ascending order of severity: 'debug', 'info', 'notice', 'warning', 'error', 'critical', 'alert', 'emergency'. Default is 'warning' in production mode, 'debug' otherwise.",
+			default: isProduction ? "notice" : "debug",
+			describe: "Set the severity level for the logs being reported. Values are, in ascending order of severity: 'debug', 'info', 'notice', 'warning', 'error', 'critical', 'alert', 'emergency'. Default is 'notice' in production mode, 'debug' otherwise.",
 			type: "string",
 		})
 		.option("compileonly", {
@@ -77,8 +77,10 @@ const logging = require("react-server").logging,
 // Logging setup. This typically wouldn't be handled here,
 // but the application integration stuff isn't part of this project
 logging.setLevel('main',  argv.loglevel);
-logging.setLevel('time',  'fast');
-logging.setLevel('gauge', 'ok');
+if (!isProduction) {
+	logging.setLevel('time',  'fast');
+	logging.setLevel('gauge', 'ok');
+}
 
 // if the server is being launched with some bad practices for production mode, then we
 // should output a warning. if arg.jsurl is set, then hot and minify are moot, since
