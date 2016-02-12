@@ -72,7 +72,7 @@ const argv = parseCliArgs(isProduction);
 // before they get loaded.
 const logging = require("react-server").logging,
 	logger = logging.getLogger({name: "react-server-cli/index.js", color: {server: 9}}),
-	startServer = require("./startServer");
+	startServer = require("./startServer").default;
 
 // Logging setup. This typically wouldn't be handled here,
 // but the application integration stuff isn't part of this project

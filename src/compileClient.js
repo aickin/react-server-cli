@@ -1,15 +1,17 @@
-const webpack = require("webpack"),
-	logger = require('react-server').logging.getLogger({name: "react-server-cli/compileClient.js", color: {server: 164}}),
-	path = require("path"),
-	mkdirp = require("mkdirp"),
-	fs = require("fs"),
-	Q = require("Q"),
-	ExtractTextPlugin = require("extract-text-webpack-plugin");
+import webpack from "webpack"
+import reactServer from "react-server"
+import path from "path"
+import mkdirp from "mkdirp"
+import fs from "fs"
+import Q from "Q"
+import ExtractTextPlugin from "extract-text-webpack-plugin"
+
+const logger = reactServer.logging.getLogger({name: "react-server-cli/compileClient.js", color: {server: 164}});
 /**
  * Compiles the routes file in question for browser clients using webpack.
  */
  // TODO: add options for sourcemaps.
-module.exports = (routes,
+export default (routes,
 		{
 			workingDir = "./__clientTemp",
 			routesDir = ".",

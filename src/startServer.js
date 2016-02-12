@@ -1,21 +1,21 @@
 "use strict";
 
-const triton = require("react-server"),
-	http = require('http'),
-	express = require('express'),
-	logging = triton.logging,
-	// TODO: do we need a post-processor here?
-	logger = logging.getLogger({name: "react-server-cli/index.js", color: {server: 9}}),
-	path = require("path"),
-	compression = require("compression"),
-	webpack = require("webpack"),
-	WebpackDevServer = require("webpack-dev-server"),
-	compileClient = require("./compileClient")
-;
+import triton from "react-server"
+import http from "http"
+import express from "express"
+import path from "path"
+import compression from "compression"
+import webpack from "webpack"
+import WebpackDevServer from "webpack-dev-server"
+import compileClient from "./compileClient"
+
+const logging = triton.logging;
+// TODO: do we need a post-processor here?
+const logger = logging.getLogger({name: "react-server-cli/startServer.js", color: {server: 9}}),
 
 export default function(routesRelativePath, {
-		port = 3000, 
-		jsPort = 3001, 
+		port = 3000,
+		jsPort = 3001,
 		hot = true,
 		minify = false,
 		compileOnly = false,
@@ -23,7 +23,7 @@ export default function(routesRelativePath, {
 	} = {}) {
 
 	const routesPath = path.join(process.cwd(), routesRelativePath);
-	const routes = require(routesPath);
+	const routes from routesPath);
 	const outputUrl = jsUrl || `http://localhost:${jsPort}/`;
 
 	const {serverRoutes, compiler} = compileClient(routes, {
@@ -37,7 +37,7 @@ export default function(routesRelativePath, {
 		logger.notice("Starting compilation of client JavaScript...");
 		compiler.run((err, stats) => {
 			handleCompilationErrors(err, stats);
-			
+
 			logger.notice("Successfully compiled client JavaScript.");
 		});
 	} else {
@@ -63,7 +63,7 @@ const startHtmlServer = (serverRoutes, port) => {
 	triton.middleware(server, require(serverRoutes));
 
 	http.createServer(server).listen(port, function () {
-		logger.info(`Started HTML server on port ${port}`);	
+		logger.info(`Started HTML server on port ${port}`);
 	});
 };
 
