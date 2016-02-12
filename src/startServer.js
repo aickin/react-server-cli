@@ -23,7 +23,7 @@ export default function(routesRelativePath, {
 	} = {}) {
 
 	const routesPath = path.join(process.cwd(), routesRelativePath);
-	const routes from routesPath);
+	const routes = require(routesPath);
 	const outputUrl = jsUrl || `http://localhost:${jsPort}/`;
 
 	const {serverRoutes, compiler} = compileClient(routes, {
