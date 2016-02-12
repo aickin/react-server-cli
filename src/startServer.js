@@ -11,7 +11,7 @@ import compileClient from "./compileClient"
 
 const logging = triton.logging;
 // TODO: do we need a post-processor here?
-const logger = logging.getLogger({name: "react-server-cli/startServer.js", color: {server: 9}}),
+const logger = logging.getLogger({name: "react-server-cli/startServer.js", color: {server: 9}});
 
 export default function(routesRelativePath, {
 		port = 3000,
