@@ -109,7 +109,7 @@ Defaults to **null**.
 #### --loglevel
 Sets the severity level for the logs being reported. Values are, in ascending order of severity: 'debug', 'info', 'notice', 'warning', 'error', 'critical', 'alert', 'emergency'.
 
-Default is **'debug'** in development mode and **'notice'** in production.
+Default is **'debug'** in development mode and **'warning'** in production.
 
 #### --help, -?
 Shows command line options.

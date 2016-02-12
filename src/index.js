@@ -31,8 +31,8 @@ const parseCliArgs = (isProduction) => {
 			type: "boolean",
 		})
 		.option("loglevel", {
-			default: isProduction ? "notice" : "debug",
-			describe: "Set the severity level for the logs being reported. Values are, in ascending order of severity: 'debug', 'info', 'notice', 'warning', 'error', 'critical', 'alert', 'emergency'. Default is 'notice' in production mode, 'debug' otherwise.",
+			default: isProduction ? "warning" : "debug",
+			describe: "Set the severity level for the logs being reported. Values are, in ascending order of severity: 'debug', 'info', 'notice', 'warning', 'error', 'critical', 'alert', 'emergency'. Default is 'warning' in production mode, 'debug' otherwise.",
 			type: "string",
 		})
 		.option("compileonly", {
