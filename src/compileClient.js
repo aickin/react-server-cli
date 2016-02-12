@@ -108,49 +108,56 @@ const packageCodeForBrowser = (entrypoints, outputDir, outputUrl, hot, minify) =
 	return webpackConfig;
 };
 
+// writes out a routes file that can be used at runtime.
 const writeWebpackCompatibleRoutesFile = (routes, routesDir, workingDirAbsolute, staticUrl, isClient) => {
 	let routesOutput = [];
 
 	const existingMiddleware = routes.middleware.map((middlewareRelativePath) => {
 		return `require("${path.relative(workingDirAbsolute, path.resolve(routesDir, middlewareRelativePath))}")`
 	});
-	routesOutput.push("var coreJsMiddleware = require('react-server-cli/target/coreJsMiddleware');\n");
-	routesOutput.push("var coreCssMiddleware = require('react-server-cli/target/coreCssMiddleware');\n");
 	routesOutput.push(`
-		module.exports = {
-			middleware:[
-				coreJsMiddleware(${JSON.stringify(staticUrl)}),
-				coreCssMiddleware(${JSON.stringify(staticUrl)}),
-				${existingMiddleware.join(",")}
-			],
-			routes:{`);
+var coreJsMiddleware = require('react-server-cli/target/coreJsMiddleware');
+var coreCssMiddleware = require('react-server-cli/target/coreCssMiddleware');
+module.exports = {
+	middleware:[
+		coreJsMiddleware(${JSON.stringify(staticUrl)}),
+		coreCssMiddleware(${JSON.stringify(staticUrl)}),
+		${existingMiddleware.join(",")}
+	],
+	routes:{`);
 
 	for (let routeName in routes.routes) {
 		let route = routes.routes[routeName];
-
 		var relativePathToPage = path.relative(workingDirAbsolute, path.resolve(routesDir, route.page));
 
-		routesOutput.push("\n\t\t" + routeName + ": {");
+		routesOutput.push(`
+		${routeName}: {`);
 		for (let name of ["path", "method"]) {
-			routesOutput.push("\n\t\t\t" + `${name}: "${route[name]}",`);
+			routesOutput.push(`
+			${name}: "${route[name]}",`);
 		}
 		routesOutput.push(`
 			page: function() {
 				return {
 					done: function(cb) {`);
 		if (isClient) {
-			routesOutput.push(`require.ensure("${relativePathToPage}", function() {
-								cb(require("${relativePathToPage}"));
-							});`);
+			routesOutput.push(`
+						require.ensure("${relativePathToPage}", function() {
+							cb(require("${relativePathToPage}"));
+						});`);
 		} else {
-			routesOutput.push(`cb(require("${relativePathToPage}"));`);
+			routesOutput.push(`
+						cb(require("${relativePathToPage}"));`);
 		}
-		routesOutput.push(`					}
+		routesOutput.push(`
+					}
 				};
-			},`);
-		routesOutput.push("\n\t\t},");
+			},
+		},`);
 	}
-	routesOutput.push("\n\t}\n}; \n");
+	routesOutput.push(`
+	}
+};`);
 
 	const routesFilePath = `${workingDirAbsolute}/routes_${isClient ? "client" : "server"}.js`;
 	fs.writeFileSync(routesFilePath, routesOutput.join(""));
@@ -158,6 +165,9 @@ const writeWebpackCompatibleRoutesFile = (routes, routesDir, workingDirAbsolute,
 	return routesFilePath;
 };
 
+// writes out a bootstrap file for the client which in turn includes the client
+// routes file. note that outputDir must be the same directory as the client routes
+// file, which must be named "routes_client".
 const writeClientBootstrapFile = (outputDir) => {
 	var outputFile = outputDir + "/entry.js";
 	fs.writeFileSync(outputFile, `
