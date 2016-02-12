@@ -1,6 +1,6 @@
 {
   "name": "react-server-cli",
-  "version": "0.0.11",
+  "version": "0.0.12",
   "description": "A command line to run react-server",
   "main": "target/index.js",
   "scripts": {
@@ -12,10 +12,10 @@
   "dependencies": {
     "babel-core": "~6.5.1",
     "babel-loader": "~6.2.2",
-		"babel-plugin-inline-environment-variables": "~1.0.1",
-		"babel-plugin-runtime": "~1.0.7",
-		"babel-preset-es2015": "~6.5.0",
-		"babel-preset-react": "^6.5.0",
+    "babel-plugin-inline-environment-variables": "~1.0.1",
+    "babel-plugin-runtime": "~1.0.7",
+    "babel-preset-es2015": "~6.5.0",
+    "babel-preset-react": "^6.5.0",
     "babel-runtime": "^6.3.19",
     "compression": "~1.5.1",
     "css-loader": "~0.15.4",
