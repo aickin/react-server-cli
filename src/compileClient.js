@@ -115,11 +115,12 @@ const writeWebpackCompatibleRoutesFile = (routes, routesDir, workingDirAbsolute,
 	let routesOutput = [];
 
 	const existingMiddleware = routes.middleware.map((middlewareRelativePath) => {
-		return `require("${path.relative(workingDirAbsolute, path.resolve(routesDir, middlewareRelativePath))}")`
+		return `unwrapEs6Module(require("${path.relative(workingDirAbsolute, path.resolve(routesDir, middlewareRelativePath))}"))`
 	});
 	routesOutput.push(`
-var coreJsMiddleware = require('react-server-cli/target/coreJsMiddleware');
-var coreCssMiddleware = require('react-server-cli/target/coreCssMiddleware');
+function unwrapEs6Module(module) { return module.__esModule ? module.default : module }
+var coreJsMiddleware = unwrapEs6Module(require('react-server-cli/target/coreJsMiddleware'));
+var coreCssMiddleware = unwrapEs6Module(require('react-server-cli/target/coreCssMiddleware'));
 module.exports = {
 	middleware:[
 		coreJsMiddleware(${JSON.stringify(staticUrl)}),
@@ -145,11 +146,11 @@ module.exports = {
 		if (isClient) {
 			routesOutput.push(`
 						require.ensure("${relativePathToPage}", function() {
-							cb(require("${relativePathToPage}"));
+							cb(unwrapEs6Module(require("${relativePathToPage}")));
 						});`);
 		} else {
 			routesOutput.push(`
-						cb(require("${relativePathToPage}"));`);
+						cb(unwrapEs6Module(require("${relativePathToPage}")));`);
 		}
 		routesOutput.push(`
 					}
