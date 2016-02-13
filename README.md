@@ -1,18 +1,14 @@
 # react-server-cli
 
-## NOTE: THIS PROJECT IS IN ALPHA. PLEASE DO NOT USE IN PRODUCTION.
-
 A simple command line app that will compile a routes file for the client and start up express. To use:
 
-1. Add `react-server-cli` to your project's `package.json`
-2. `npm install`
-3. `./node_modules/react-server-cli/bin/react-server-cli` from the directory that has your routes.js file, or you can make an executable script that calls `react-server-cli`.
-
-We would like to make `react-server-cli` a globally installable package so that projects don't have to add it to their package.json, but that will take some more work.
+1. `npm install --save react-server-cli`
+2. Add `./node_modules/react-server-cli/bin/react-server-cli` as the value for `scripts.start` in package.json.
+3. `npm start` from the directory that has your routes.js file.
 
 ## Routes Format
 
-Note that the routes file needs to be in a bit different format than what we have used in the past in `react-server`. Rather than `routes.route.page` being a function, it needs to be a path to a file that exports a page class. For example:
+Note that the routes file needs to be in a bit different format than what we have used in the past in `react-server`. Rather than `routes.route.page` being a function, it needs to be a path to a file that exports a page class. Middleware also needs to be an array of file paths. For example:
 
 ```javascript
 module.exports = {
@@ -37,17 +33,17 @@ module.exports = {
 
 ##What It Does
 
-The CLI builds and runs a `react-server` project, using Express. It compiles JS(X) and CSS into efficiently loadable bundles using webpack, and it supports hot reloading of React components on the client-side.
+The CLI builds and runs a `react-server` project, using Express. It compiles JS(X) and CSS into efficiently loadable bundles with code splitting using webpack, and it supports hot reloading of React components on the client-side during development.
 
 ##Built-in Features
 
 ###Babel Compilation
-It's rare to see a project these days in the JavaScript world that isn't at least experimenting with ES2015 and ES7. To make this easier, all code in your project will be run through Babel using default options, and source maps will be generated back to the original file.
+It's rare to see a project these days in the JavaScript world that isn't at least experimenting with ES2015 and ES7. To make this easier, all code in your project will be run through Babel, and source maps will be generated back to the original file.
 
-If you want to customize your Babel options, create a `.babelrc` file in your root code directory, expressing your Babel config as a JSON object. (Note that JSON syntax is more restrictive than JavaScript; all key names must be quoted, and trailing commas in an object or array are forbidden.)
+To take advantage of the Babel compilation, you need to install the Babel plugins and presets you want and reference them in a `.babelrc` file in your code directory. For more on the `.babelrc` format, see [its documentation here](https://babeljs.io/docs/usage/babelrc/).
 
 ##Options
-Smart defaults are the goal, so it support Babel out of the box, and it has two base modes: **development** and **production**. `react-server-cli` will determine which base mode it's in by looking at (in order):
+Smart defaults are the goal, and `react-server-cli` has two base modes: **development** and **production**. `react-server-cli` will determine which base mode it's in by looking at (in order):
 
 1. If the `--production` flag was sent in, it's **production**.
 1. If `process.env.NODE_ENV` is `'production'`, it's **production**.
@@ -55,7 +51,7 @@ Smart defaults are the goal, so it support Babel out of the box, and it has two 
 
 ###Development mode: making a great DX
 
-Development mode is the default, and its goals are rapid startup and code-test loops. Hot mode is enabled for all code, although at this time, editing the routes file or modules that export a Page class still requires a browser reload to see changes.
+Development mode is the default, and its goals are rapid startup and code-test loops. Hot mode is enabled for all code, although at this time, editing the routes file or modules that export a Page class still requires a browser reload to see changes. Modules that export a React component should reload without a browser refresh.
 
 In development mode, code is not minified in order to speed up startup time, so please do not think that the sizes of bundles in development mode is indicative of how big they will be in production. In fact, it's really best not to do any kind of perf testing in development mode; it will just lead you astray.
 
@@ -85,7 +81,7 @@ The port to use when `react-server-cli` is serving up the client JavaScript.
 Defaults to **3001**.
 
 #### --hot, -h
-Use hot reloading of client JavaScript.
+Use hot reloading of client JavaScript. Modules that export React components will reload without refreshing the browser.
 
 Defaults to **true** in development mode and **false** in production mode.
 
@@ -95,14 +91,14 @@ Minify client JavaScript and CSS.
 Defaults to **false** in development mode and **true** in production.
 
 #### --compileonly
-Compile the client JavaScript only, and don't start any servers. This is what you want to do if you are building the client JavaScript to be hosted on a CDN. Unless you have a very specific reason, it's almost always a good idea to only do this in production mode.
+Compile the client JavaScript only, and don't start any servers. This is what you want to do if you are building the client JavaScript to be hosted on a CDN or separate server. Unless you have a very specific reason, it's almost always a good idea to only do this in production mode.
 
 For maximum compatibility between servers and compiled JavaScript, this option implies --bundleperroute.
 
 Defaults to **false**.
 
 #### --jsurl
-A URL base for the pre-compiled client JavaScript. Setting a value for jsurl means that react-server-cli will not compile the client JavaScript at all, and it will not serve up any JavaScript. Obviously, this means that --jsurl overrides all of the options related to JavaScript compilation: --hot, --minify, and --bundleperroute.
+A URL base for the pre-compiled client JavaScript; usually this is a base URL on a CDN or separate server. Setting a value for jsurl means that react-server-cli will not compile the client JavaScript at all, and it will not serve up any of the client JavaScript. Obviously, this means that --jsurl overrides all of the options related to JavaScript compilation: --hot, --minify, and --bundleperroute.
 
 Defaults to **null**.
 
@@ -121,8 +117,6 @@ Here are a few of the things on the unordered wishlist to add to `react-server-c
 * Default to https, with http as a special case. If no cert & key specified, make a self-signed cert/key combo.
 * Ability to output a completely static site, if the user wants to forgo server-side rendering.
 * Ability to forgo server rendering in development mode.
-* Add an argument to specify a CDN URL where pre-built JavaScript lives.
-* A "dist" command that will output just the bundled client code for upload to a CDN/static server.
 * A programmatic API.
 * Automatic compilation of SASS and LESS.
 * Ability to opt out of Babel compilation.
